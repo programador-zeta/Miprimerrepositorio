@@ -21,3 +21,6 @@ export SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io
 .local-tools/supabase status -o json 2>/dev/null | node scripts/write-local-env.mjs
 
 .local-tools/supabase migration up --local
+
+# Seed only the known local Docker database, never a configured remote connection.
+docker exec -i supabase_db_Miprimerrepositorio psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/seed.sql

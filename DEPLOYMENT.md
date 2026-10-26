@@ -11,7 +11,7 @@ No hace falta un token de Vercel. Conectar Render a GitHub desde sus paneles tam
 ## Supabase remoto
 
 1. Iniciar sesión en Supabase y crear un proyecto dedicado a Somewhere Tag en una organización con cuota gratuita disponible. Si no queda cuota gratuita, detenerse antes de contratar recursos de pago.
-2. En el editor SQL del proyecto, ejecutar en orden los tres archivos de `supabase/migrations`. Aplicarlos una sola vez, en transacciones, conservando el historial de cambios. No ejecutar un reset ni copiar `supabase/seed.sql`: su secreto local de prueba es conocido.
+2. Si la integración con GitHub no ha aplicado ya las migraciones, en el editor SQL del proyecto, ejecutar en orden los archivos SQL de `supabase/migrations`. Aplicarlos una sola vez, en transacciones, conservando el historial de cambios. No ejecutar un reset ni copiar `supabase/seed.sql`: su secreto local de prueba es conocido. La carga automática de semillas está desactivada; el setup local carga ese archivo únicamente en su contenedor Docker.
 3. Obtener la URL del proyecto y su clave anon/publishable en la sección de conexión/API del proyecto. Estas son las únicas dos variables que necesita la web. Nunca usar una clave service-role en su lugar.
 
 ## Render conectado a GitHub
@@ -23,6 +23,8 @@ No hace falta un token de Vercel. Conectar Render a GitHub desde sus paneles tam
 5. Iniciar el despliegue. El servicio compila Next.js y escucha en el puerto que proporciona Render. El enlace público será el que Render asigne al servicio; no se debe inventar su dirección.
 
 La comprobación de salud utiliza la portada. Una portada que abre no demuestra por sí sola que Supabase esté conectado: comprobar también los flujos siguientes.
+
+En la creación del proyecto Supabase, mantener Data API activada, desactivar la exposición automática de tablas y activar RLS automática. Las migraciones también activan RLS y conceden explícitamente los permisos necesarios.
 
 ## Autenticación y verificación
 
