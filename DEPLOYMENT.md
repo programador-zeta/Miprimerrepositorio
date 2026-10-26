@@ -18,7 +18,7 @@ No hace falta un token de Vercel. Conectar Render a GitHub desde sus paneles tam
 
 1. Iniciar sesión en Render con GitHub y autorizar únicamente el acceso al repositorio `programador-zeta/Miprimerrepositorio`.
 2. Crear un Blueprint desde ese repositorio y su rama `main`. Render detectará `render.yaml`.
-3. Introducir `SUPABASE_URL` y `SUPABASE_ANON_KEY` del proyecto remoto en los campos solicitados por el Blueprint. No usar las variables locales de este entorno.
+3. La URL del proyecto Somewhere ya está configurada en `render.yaml`. Introducir su clave pública anon/publishable en `SUPABASE_ANON_KEY`, solicitada por el Blueprint. No usar la clave local ni una clave service-role.
 4. Confirmar que se creará solamente el servicio web gratuito `somewhere-tag`. No se necesita una base PostgreSQL adicional en Render.
 5. Iniciar el despliegue. El servicio compila Next.js y escucha en el puerto que proporciona Render. El enlace público será el que Render asigne al servicio; no se debe inventar su dirección.
 

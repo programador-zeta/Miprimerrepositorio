@@ -12,6 +12,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: SUPABASE_URL
-        sync: false
+        value: https://esrhsaeruxqzlmkjaqmw.supabase.co
       - key: SUPABASE_ANON_KEY
         sync: false
