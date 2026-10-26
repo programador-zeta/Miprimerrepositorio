@@ -55,9 +55,14 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   await page.goto(`/t/${code}`);
   await page.getByRole("link", { name: "Activar mi tag" }).click();
   await expect(page).toHaveURL(/\/login\?next=/);
+  await page.getByRole("link", { name: "Crear una cuenta nueva" }).click();
+  await expect(page).toHaveURL(/\/signup\?next=/);
+  await page.getByLabel("Tu nombre", { exact: true }).fill("Cuenta de prueba");
   await page.getByLabel("Correo electrónico").fill(email);
-  await page.getByLabel("Contraseña", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "Crear mi cuenta" }).click();
+  await page.getByLabel(/^Contraseña/).fill(password);
+  await page.getByLabel("Repetir contraseña", { exact: true }).fill(password);
+  // On mobile, Enter must create the account, never dispatch the login action.
+  await page.getByLabel("Repetir contraseña", { exact: true }).press("Enter");
   await expect(page).toHaveURL(new RegExp(`/activate/${code}$`));
   await page.getByLabel("Código secreto de activación").fill("incorrect-code");
   await page.getByRole("button", { name: "Activar mi tag" }).click();
@@ -68,7 +73,10 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   await page.getByRole("button", { name: "Activar mi tag" }).click();
   await expect(page).toHaveURL(/\/dashboard\?activated=1/);
   await expect(page.getByRole("status")).toContainText("ya está activo");
-  await expect(page.locator(".dashboard-metrics strong").nth(2)).toHaveText("1");
+  await expect(page.getByText("Cuenta de prueba, siempre hay otro lugar.",{exact:true})).toBeVisible();
+  await expect(page.locator(".dashboard-metrics strong").nth(2)).toHaveText(
+    "1",
+  );
   await page.getByRole("link", { name: "Tags", exact: true }).click();
   await expect(page.getByText(code, { exact: true })).toBeVisible();
   await page.goto("/dashboard");

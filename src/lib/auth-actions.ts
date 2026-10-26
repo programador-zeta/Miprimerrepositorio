@@ -2,15 +2,31 @@
 import { sessionSupabase } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { validTagCode } from "@/lib/tags";
+import { authErrorMessage } from "@/lib/auth-errors";
+import { authDestination, confirmationRedirect } from "@/lib/auth-navigation";
 export type FormState = { error?: string; success?: string };
 export async function authenticate(
   next: string,
   _: FormState,
   form: FormData,
 ): Promise<FormState> {
-  const email = String(form.get("email") || "").trim(),
-    password = String(form.get("password") || "");
-  const signup = form.get("mode") === "signup";
+  return performAuth(next, false, form);
+}
+export async function register(
+  next: string,
+  _: FormState,
+  form: FormData,
+): Promise<FormState> {
+  return performAuth(next, true, form);
+}
+async function performAuth(
+  next: string,
+  signup: boolean,
+  form: FormData,
+): Promise<FormState> {
+  const email = String(form.get("email") || "").trim();
+  const password = String(form.get("password") || "");
+  const name = String(form.get("name") || "").trim();
   if (
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     email.length > 254 ||
@@ -21,24 +37,40 @@ export async function authenticate(
       error:
         "Introduce un correo válido y una contraseña de entre 8 y 128 caracteres.",
     };
+  if (signup && (!name || name.length > 80))
+    return { error: "Indica tu nombre para crear tu cuenta." };
+  if (signup && password !== String(form.get("password_confirm") || ""))
+    return { error: "Las contraseñas no coinciden. Escríbelas de nuevo." };
   const supabase = await sessionSupabase();
   const { data, error } = signup
-    ? await supabase.auth.signUp({ email, password })
+    ? await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name },
+          emailRedirectTo: confirmationRedirect(
+            process.env.SITE_URL ||
+              process.env.RENDER_EXTERNAL_URL ||
+              "http://127.0.0.1:3000",
+            next,
+          ),
+        },
+      })
     : await supabase.auth.signInWithPassword({ email, password });
-  if (error)
-    return {
-      error: signup
-        ? "No pudimos crear la cuenta. Revisa tus datos o intenta iniciar sesión."
-        : "Correo o contraseña incorrectos. Inténtalo de nuevo.",
-    };
+  if (error) {
+    // Record only diagnostic codes, never form data, credentials or raw provider messages.
+    console.error("somewhere_auth_failed", {
+      operation: signup ? "signup" : "login",
+      code: error.code ?? "unknown",
+      status: error.status,
+    });
+    return { error: authErrorMessage(error, signup) };
+  }
   if (!data.session)
     return {
       success: "Revisa tu correo y confirma tu cuenta antes de iniciar sesión.",
     };
-  const target = /^\/activate\/[A-Z0-9]{4,24}$/.test(next)
-    ? next
-    : "/dashboard";
-  redirect(target);
+  redirect(authDestination(next));
 }
 export async function activate(
   code: string,

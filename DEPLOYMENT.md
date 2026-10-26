@@ -28,7 +28,7 @@ En la creación del proyecto Supabase, mantener Data API activada, desactivar la
 
 ## Autenticación y verificación
 
-- Configurar en Supabase Auth la URL HTTPS real asignada por Render como URL del sitio y las redirecciones permitidas.
+- En Supabase, Authentication → URL Configuration: Site URL = `https://somewhere-tag.onrender.com` y Redirect URLs incluye `https://somewhere-tag.onrender.com/auth/confirm`. La app utiliza `SITE_URL` (o `RENDER_EXTERNAL_URL`) para la confirmación y conserva el destino NFC. No usar localhost en la configuración remota.
 - Mantener la confirmación de correo activa y comprobar que se entreguen los correos.
 - Ejecutar `deployment/create-first-tag.sql` una sola vez en el SQL Editor de Supabase para crear `SW0001`. El resultado muestra el secreto aleatorio únicamente en ese panel: guardarlo de forma privada y no compartirlo en capturas ni chat. La base guarda su hash bcrypt. Si el tag existe, no lo modifica. No reutilizar `LOCAL-SW-2026`.
 - Comprobar mediante HTTPS: tag sin reclamar, tag inexistente, registro, confirmación, inicio de sesión, activación, perfil, emergencia y permisos de fotos públicas/privadas.

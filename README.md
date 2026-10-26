@@ -20,7 +20,9 @@ En hosts con Docker `vfs`, el script consolida la imagen oficial de PostgreSQL e
 ## Flujo NFC y rutas
 
 - `/`: presentación de la marca.
-- `/login`: registro e inicio de sesión con Supabase Auth.
+- `/login`: inicio de sesión.
+- `/signup`: registro separado con nombre, correo y confirmación de contraseña.
+- `/auth/confirm`: confirmación de correo y sesión con Supabase Auth.
 - `/activate/[code]`: activación con autenticación y código secreto.
 - `/u/[username]`: perfil público con foto, ciudad, bio y contadores públicos.
 - `/u/[username]/emergency`: contacto y datos opcionales compartidos, con llamada directa.
@@ -83,3 +85,9 @@ No copiar el seed ni los secretos locales a producción. La autenticación local
 ## Fotografía
 
 La fotografía de montaña incluida proviene de Start Bootstrap Grayscale. Licencia y atribución en `public/images/PHOTO-LICENSE.txt`.
+
+## Conexión con la etiqueta NFC
+
+La etiqueta guarda un registro NDEF de tipo URL: `https://somewhere-tag.onrender.com/t/SW0001`. Se escribe con una herramienta NFC y un teléfono compatible. No se guarda el código secreto, la contraseña ni los datos personales en la etiqueta.
+
+Antes de grabarla, crear el tag remoto con `deployment/create-first-tag.sql` desde el SQL Editor del propietario y guardar el código mostrado de forma privada. Crear una cuenta en `/signup`, confirmar el correo si se solicita, abrir el enlace del tag y reclamarlo con ese código. Desde entonces, el mismo enlace abre el perfil del propietario. Los cambios de perfil se guardan en Supabase y no requieren reescribir el NFC. Durante las pruebas no bloquear la etiqueta como solo lectura.

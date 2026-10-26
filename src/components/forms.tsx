@@ -1,6 +1,12 @@
 "use client";
 import { useActionState } from "react";
-import { authenticate, activate, type FormState } from "@/lib/auth-actions";
+import Link from "next/link";
+import {
+  authenticate,
+  register,
+  activate,
+  type FormState,
+} from "@/lib/auth-actions";
 export function Feedback({ state }: { state: FormState }) {
   return (
     <>
@@ -46,20 +52,80 @@ export function LoginForm({ next }: { next: string }) {
         />
       </label>
       <Feedback state={state} />
-      <button className="button" name="mode" value="login" disabled={pending}>
+      <button className="button" disabled={pending}>
         {pending ? "Conectando…" : "Iniciar sesión"}
         <span className="arrow" aria-hidden="true" />
       </button>
-      <button
+      <Link
         className="button secondary"
-        name="mode"
-        value="signup"
-        disabled={pending}
+        href={{ pathname: "/signup", query: { next } }}
       >
-        Crear mi cuenta
-      </button>
+        Crear una cuenta nueva
+      </Link>
       <p className="status-note">
         Usamos tu correo para tu cuenta. No aparece en tu perfil público.
+      </p>
+    </form>
+  );
+}
+export function SignupForm({ next }: { next: string }) {
+  const [state, action, pending] = useActionState(
+    register.bind(null, next),
+    {},
+  );
+  return (
+    <form action={action} className="form-stack">
+      <label className="field">
+        Tu nombre
+        <input name="name" autoComplete="name" required maxLength={80} />
+      </label>
+      <label className="field">
+        Correo electrónico
+        <input
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          maxLength={254}
+        />
+      </label>
+      <label className="field">
+        Contraseña
+        <input
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          maxLength={128}
+        />
+        <span className="hint">Mínimo 8 caracteres.</span>
+      </label>
+      <label className="field">
+        Repetir contraseña
+        <input
+          name="password_confirm"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          maxLength={128}
+        />
+      </label>
+      <Feedback state={state} />
+      <button className="button" disabled={pending}>
+        {pending ? "Creando cuenta…" : "Crear mi cuenta"}
+        <span className="arrow" aria-hidden="true" />
+      </button>
+      <Link
+        className="text-link"
+        href={{ pathname: "/login", query: { next } }}
+      >
+        Ya tengo cuenta. Iniciar sesión
+      </Link>
+      <p className="status-note">
+        Tu correo es privado. Si recibes un mensaje de confirmación, ábrelo para
+        completar el registro.
       </p>
     </form>
   );
