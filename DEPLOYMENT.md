@@ -30,7 +30,7 @@ En la creación del proyecto Supabase, mantener Data API activada, desactivar la
 
 - Configurar en Supabase Auth la URL HTTPS real asignada por Render como URL del sitio y las redirecciones permitidas.
 - Mantener la confirmación de correo activa y comprobar que se entreguen los correos.
-- Crear el tag de la prueba pública con un secreto nuevo y aleatorio, guardado como hash bcrypt y entregado al propietario por un canal seguro. No reutilizar `LOCAL-SW-2026`.
+- Ejecutar `deployment/create-first-tag.sql` una sola vez en el SQL Editor de Supabase para crear `SW0001`. El resultado muestra el secreto aleatorio únicamente en ese panel: guardarlo de forma privada y no compartirlo en capturas ni chat. La base guarda su hash bcrypt. Si el tag existe, no lo modifica. No reutilizar `LOCAL-SW-2026`.
 - Comprobar mediante HTTPS: tag sin reclamar, tag inexistente, registro, confirmación, inicio de sesión, activación, perfil, emergencia y permisos de fotos públicas/privadas.
 - Las pruebas administrativas del repositorio son para Supabase local; no ejecutarlas contra datos de producción.
 
