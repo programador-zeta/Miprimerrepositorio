@@ -28,9 +28,9 @@ En la creación del proyecto Supabase, mantener Data API activada, desactivar la
 
 ## Autenticación y verificación
 
-- En Supabase, Authentication → URL Configuration: Site URL = `https://somewhere-tag.onrender.com` y Redirect URLs incluye `https://somewhere-tag.onrender.com/auth/confirm`. La app utiliza `SITE_URL` (o `RENDER_EXTERNAL_URL`) para la confirmación y conserva el destino NFC. No usar localhost en la configuración remota.
+- Las URL de Auth y la confirmación de correo del proyecto dedicado están declaradas en `[remotes.production]` de `supabase/config.toml`. La integración de GitHub aplica esa configuración al proyecto `esrhsaeruxqzlmkjaqmw`; la configuración local conserva localhost. Mantener `Deploy to production` activo. La aplicación utiliza `SITE_URL` o `RENDER_EXTERNAL_URL` para volver al sitio correcto.
 - Mantener la confirmación de correo activa y comprobar que se entreguen los correos.
-- Ejecutar `deployment/create-first-tag.sql` una sola vez en el SQL Editor de Supabase para crear `SW0001`. El resultado muestra el secreto aleatorio únicamente en ese panel: guardarlo de forma privada y no compartirlo en capturas ni chat. La base guarda su hash bcrypt. Si el tag existe, no lo modifica. No reutilizar `LOCAL-SW-2026`.
+- La migración `202610270001_provision_first_hosted_tag.sql` crea `SW0001` únicamente si no existe, con un secreto aleatorio cifrado en Supabase Vault y su hash bcrypt en `tags`. No muestra el secreto en los logs y nunca modifica un tag existente. El propietario puede recuperar el código con `deployment/read-first-tag-code.sql` en su SQL Editor privado. No compartir el resultado en capturas ni chat. Si el tag se creó antes, conservar y usar su código original. `deployment/create-first-tag.sql` es una alternativa manual que también conserva los tags existentes. No reutilizar `LOCAL-SW-2026`.
 - Comprobar mediante HTTPS: tag sin reclamar, tag inexistente, registro, confirmación, inicio de sesión, activación, perfil, emergencia y permisos de fotos públicas/privadas.
 - Las pruebas administrativas del repositorio son para Supabase local; no ejecutarlas contra datos de producción.
 

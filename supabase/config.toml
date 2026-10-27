@@ -347,3 +347,23 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# Hosted settings are applied only to this dedicated Somewhere production project.
+# Local development retains its loopback URLs and local email behavior.
+[remotes.production]
+project_id = "esrhsaeruxqzlmkjaqmw"
+
+[remotes.production.auth]
+site_url = "https://somewhere-tag.onrender.com"
+additional_redirect_urls = ["https://somewhere-tag.onrender.com/auth/confirm"]
+enable_signup = true
+minimum_password_length = 8
+
+[remotes.production.auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true
+max_frequency = "60s"
+
+[remotes.production.db.seed]
+enabled = false
