@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import fixture from "../tests/tag-fixture.json";
 import { createClient } from "@supabase/supabase-js";
 import { execFileSync } from "node:child_process";
 const config = JSON.parse(
@@ -16,17 +17,11 @@ const suffix = Date.now().toString(36),
   password = `Test-${suffix}-938A!`;
 let userId: string | undefined;
 test.beforeAll(async () => {
-  const { data, error } = await admin
-    .from("tags")
-    .select("activation_code")
-    .eq("public_code", "SW0001")
-    .single();
-  expect(error).toBeNull();
   expect(
     (
       await admin
         .from("tags")
-        .insert({ public_code: code, activation_code: data!.activation_code })
+        .insert({ public_code: code, activation_code: fixture.activation_hash })
     ).error,
   ).toBeNull();
 });
@@ -69,7 +64,7 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   await expect(
     page.getByRole("alert").filter({ hasText: "No pudimos activar" }),
   ).toBeVisible();
-  await page.getByLabel("Código secreto de activación").fill("LOCAL-SW-2026");
+  await page.getByLabel("Código secreto de activación").fill(fixture.activation_code);
   await page.getByRole("button", { name: "Activar mi tag" }).click();
   await expect(page).toHaveURL(/\/dashboard\?activated=1/);
   await expect(page.getByRole("status")).toContainText("ya está activo");

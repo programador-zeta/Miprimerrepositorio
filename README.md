@@ -37,7 +37,7 @@ En hosts con Docker `vfs`, el script consolida la imagen oficial de PostgreSQL e
 - Inexistente: responde 404.
 - Consulta fallida: muestra un mensaje de conexión y permite reintentar.
 
-`SW0001` es el tag inicial de desarrollo. Su código secreto de prueba es `LOCAL-SW-2026`. Es información de prueba local, **nunca debe usarse en producción ni en etiquetas físicas**. La etiqueta NFC almacena solamente la URL pública `/t/SW0001`, nunca el código secreto.
+`SW0001` es el tag inicial. Las instalaciones nuevas guardan su código aleatorio en Vault; se recupera únicamente desde el SQL Editor privado del propietario. Instalaciones locales antiguas pueden conservar el fixture `LOCAL-SW-2026`. Las pruebas crean tags temporales propios con `tests/tag-fixture.json` y nunca reutilizan el secreto de `SW0001`. **Los códigos y hashes de prueba no se usan en producción ni en etiquetas físicas**. El NFC almacena solo la URL pública, nunca el código secreto.
 
 ## Verificación
 

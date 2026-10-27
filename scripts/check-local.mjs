@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const fixture = JSON.parse(readFileSync(new URL("../tests/tag-fixture.json", import.meta.url), "utf8"));
 import { execFileSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 const cfg = JSON.parse(
@@ -60,12 +62,6 @@ try {
     ).error,
     null,
   );
-  const seed = await admin
-    .from("tags")
-    .select("activation_code")
-    .eq("public_code", "SW0001")
-    .single();
-  assert.equal(seed.error, null);
   assert.equal(
     (
       await admin
@@ -73,7 +69,7 @@ try {
         .insert(
           codes.map((public_code, i) => ({
             public_code,
-            activation_code: seed.data.activation_code,
+            activation_code: fixture.activation_hash,
             status: i ? "disabled" : "unclaimed",
           })),
         )
@@ -88,7 +84,7 @@ try {
     (
       await owner.client.rpc("claim_tag", {
         code: codes[0],
-        secret: "LOCAL-SW-2026",
+        secret: fixture.activation_code,
       })
     ).error,
     null,
@@ -97,7 +93,7 @@ try {
     (
       await other.client.rpc("claim_tag", {
         code: codes[0],
-        secret: "LOCAL-SW-2026",
+        secret: fixture.activation_code,
       })
     ).error,
   );
