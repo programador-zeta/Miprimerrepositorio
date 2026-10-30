@@ -73,8 +73,8 @@ export default function Home() {
         </div>
         <div className="product-lifestyle">
           <Image
-            src="/brand/tag-keychain-editorial.webp"
-            alt="Boceto del Somewhere Tag azul en un llavero de aventura"
+            src="/brand/tag-backpack-editorial.webp"
+            alt="Somewhere Tag azul sujeto a una mochila de aventura"
             fill
             sizes="(max-width:700px) 85vw, 440px"
           />
