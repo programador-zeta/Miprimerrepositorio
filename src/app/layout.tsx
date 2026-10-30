@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "SOMEWHERE — Take your story outside",
@@ -13,8 +14,19 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <header className="site-header">
-          <Link href="/" className="wordmark" aria-label="Somewhere, inicio">
-            SOMEWHERE<span className="brand-dot">®</span>
+          <Link
+            href="/"
+            className="wordmark brand-logo"
+            aria-label="Somewhere, inicio"
+          >
+            <Image
+              src="/brand/somewhere-logo.jpg"
+              alt="Somewhere"
+              width={1254}
+              height={1254}
+              sizes="(max-width:700px) 175px, 230px"
+              preload
+            />
           </Link>
           <span className="header-note">GO OUT. BE SOMEWHERE.</span>
           <Link className="header-link" href="/dashboard">

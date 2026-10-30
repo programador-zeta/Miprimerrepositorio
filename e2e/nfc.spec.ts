@@ -9,10 +9,22 @@ test("mobile home opens the real unclaimed NFC tag", async ({ page }) => {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await expect(page.locator(".landscape")).toHaveCSS(
-    "background-image",
-    /\/images\/mountains.jpg/,
-  );
+  await expect(
+    page.getByRole("img", { name: "Somewhere", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("img", {
+      name: "Boceto del Somewhere Tag azul",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Ver tag verde" }).click();
+  await expect(
+    page.getByRole("img", {
+      name: "Boceto del Somewhere Tag verde",
+      exact: true,
+    }),
+  ).toBeVisible();
   await page.getByRole("link", { name: "Descubre tu Somewhere" }).click();
   await expect(page).toHaveURL(/\/t\/SW0001$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(

@@ -1,58 +1,85 @@
+import Image from "next/image";
 import Link from "next/link";
+import { ProductShowcase } from "@/components/product-showcase";
 export default function Home() {
   return (
-    <main>
-      <section className="hero">
-        <div className="hero-copy">
-          <div className="eyebrow">UN OBJETO PEQUEÑO. UN MUNDO AFUERA.</div>
-          <h1>
-            Tu historia.
-            <br />
-            En cualquier
-            <br />
-            <em>lugar.</em>
-          </h1>
-          <p className="intro">
-            Lleva lo que eres a donde vayas. Un tag que conecta tus aventuras,
-            tu gente y tu historia.
-          </p>
-          <Link href="/t/SW0001" className="button">
-            Descubre tu Somewhere <span className="arrow" aria-hidden="true" />
-          </Link>
-          <div className="hero-bottom">
-            <span className="cross" aria-hidden="true">
-              +
-            </span>
-            <span className="tiny">
-              Sin batería. Sin aplicaciones.
-              <br />
-              Solo tú y el siguiente destino.
-            </span>
-          </div>
+    <main className="somewhere-home">
+      <section className="product-hero" aria-labelledby="home-title">
+        <div className="product-topline">
+          <span>UN OBJETO PEQUEÑO. UN MUNDO AFUERA.</span>
+          <a href="#descubre">
+            Conoce el tag <span aria-hidden="true">↓</span>
+          </a>
         </div>
-        <div
-          className="landscape"
-          role="img"
-          aria-label="Cumbres de montaña entre nubes"
-        >
-          <span className="photo-label">THE WORLD IS STILL OUT THERE.</span>
-          <div className="tag-object" aria-hidden="true">
-            <strong>SOMEWHERE®</strong>
-            <span className="tag-mark arrow" />
-            <span>TAKE YOUR STORY OUTSIDE.</span>
+        <div className="product-stage">
+          <div className="product-word" aria-hidden="true">
+            Somewhere
           </div>
-          <div className="photo-caption">
-            <span>01 / A LITTLE FURTHER</span>
-            <span>SIEMPRE HAY OTRO LUGAR</span>
+          <div className="product-story">
+            <span className="product-kicker">LLEVA TU MUNDO CONTIGO</span>
+            <h1 id="home-title">
+              Tu historia.
+              <br />
+              <em>En cualquier lugar.</em>
+            </h1>
+            <p>
+              Un tag que conecta tus aventuras, tu gente y tu historia. Acerca
+              un teléfono compatible y deja que te conozcan.
+            </p>
+            <Link href="/t/SW0001" className="button">
+              Descubre tu Somewhere{" "}
+              <span className="arrow" aria-hidden="true" />
+            </Link>
           </div>
+          <ProductShowcase />
+        </div>
+        <div className="product-bottomline">
+          <span>Sin batería. Sin aplicaciones.</span>
+          <span>SOLO TÚ Y EL SIGUIENTE DESTINO.</span>
         </div>
       </section>
-      <section className="manifesto">
-        <div className="eyebrow">MENOS PANTALLA. MÁS MUNDO.</div>
-        <p>
-          Hay historias que no caben en un feed.{" "}
-          <span>Sal a vivirlas. Llévalas contigo.</span>
-        </p>
+      <section
+        className="product-details"
+        id="descubre"
+        aria-labelledby="details-title"
+      >
+        <div className="product-detail-copy">
+          <span className="product-kicker">DISEÑADO PARA IR CONTIGO</span>
+          <h2 id="details-title">
+            Pequeño por fuera.
+            <br />
+            <em>Todo tú por dentro.</em>
+          </h2>
+          <dl className="product-features">
+            <div>
+              <dt>01 / Tu perfil</dt>
+              <dd>Tu nombre, tu historia y los lugares que te hacen ser tú.</dd>
+            </div>
+            <div>
+              <dt>02 / Tus aventuras</dt>
+              <dd>Fotos y videos de tus salidas. Tú decides qué compartir.</dd>
+            </div>
+            <div>
+              <dt>03 / Tu gente</dt>
+              <dd>
+                Un acceso a tu contacto de emergencia cuando alguien lo
+                necesita.
+              </dd>
+            </div>
+          </dl>
+          <Link className="text-link" href="/dashboard">
+            Entra a tu espacio <span className="arrow" aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="product-lifestyle">
+          <Image
+            src="/brand/tag-keychain.jpg"
+            alt="Boceto del Somewhere Tag azul en un llavero de aventura"
+            fill
+            sizes="(max-width:700px) 85vw, 440px"
+          />
+          <span>HECHO PARA ESTAR AFUERA.</span>
+        </div>
       </section>
     </main>
   );
