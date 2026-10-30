@@ -46,7 +46,7 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   page,
   browser,
 }) => {
-  test.setTimeout(60000);
+  test.setTimeout(90000);
   await page.goto(`/t/${code}`);
   await page.getByRole("link", { name: "Activar mi tag" }).click();
   await expect(page).toHaveURL(/\/login\?next=/);
@@ -64,11 +64,17 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   await expect(
     page.getByRole("alert").filter({ hasText: "No pudimos activar" }),
   ).toBeVisible();
-  await page.getByLabel("Código secreto de activación").fill(fixture.activation_code);
+  await page
+    .getByLabel("Código secreto de activación")
+    .fill(fixture.activation_code);
   await page.getByRole("button", { name: "Activar mi tag" }).click();
   await expect(page).toHaveURL(/\/dashboard\?activated=1/);
   await expect(page.getByRole("status")).toContainText("ya está activo");
-  await expect(page.getByText("Cuenta de prueba, siempre hay otro lugar.",{exact:true})).toBeVisible();
+  await expect(
+    page.getByText("Cuenta de prueba, siempre hay otro lugar.", {
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(page.locator(".dashboard-metrics strong").nth(2)).toHaveText(
     "1",
   );
@@ -96,6 +102,12 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   await expect
     .poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth))
     .toBeGreaterThan(0);
+  await expect(page.locator(".profile-image")).toHaveCSS(
+    "border-radius",
+    "50%",
+  );
+  const dimensions = await page.locator(".profile-image").boundingBox();
+  expect(Math.abs(dimensions!.width - dimensions!.height)).toBeLessThan(2);
   await page.goto("/dashboard/emergency");
   await page
     .getByLabel("Contacto de emergencia", { exact: true })
@@ -121,9 +133,17 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
     .fill("La primera salida");
   await page.getByLabel("Lugar", { exact: true }).fill("Lugar de prueba");
   await page.getByLabel("Fecha", { exact: true }).fill("2026-01-12");
+  await page.getByRole("button", { name: "Crear experiencia" }).click();
+  await expect(page.getByRole("alert").filter({hasText: "Añade al menos una foto o video"})).toBeVisible();
+  await expect(page.getByLabel("Nombre de la experiencia", { exact: true })).toHaveValue("La primera salida");
   await page
-    .getByLabel(/^Fotografía/)
-    .setInputFiles("public/images/mountains.jpg");
+    .getByLabel("Fotos y videos", { exact: true })
+    .setInputFiles([
+      "public/images/mountains.jpg",
+      "public/images/mountains.jpg",
+      "e2e/fixtures/adventure.webm",
+    ]);
+  await expect(page.locator(".media-preview")).toHaveCount(3);
   await page.getByRole("button", { name: "Crear experiencia" }).click();
   await expect(page.getByRole("status")).toContainText("Experiencia guardada");
   const { data: profile } = await admin
@@ -134,9 +154,11 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   userId = profile!.user_id;
   const { data: experience } = await admin
     .from("experiences")
-    .select("id,photo_url")
+    .select("id,photo_url,media")
     .eq("user_id", userId)
     .single();
+  expect(experience!.media).toHaveLength(3);
+  await expect(page.locator(".gallery-slide")).toHaveCount(3);
   const visitor = await browser.newContext();
   const publicPage = await visitor.newPage();
   await publicPage.goto(`/u/traveler_${suffix}/experiences`);
@@ -147,6 +169,14 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
     `/media/experience-photos/${experience!.photo_url}`,
   );
   expect(privatePhoto.status()).toBe(404);
+  const videoPath = experience!.media[2].path;
+  expect(
+    (
+      await visitor.request.get(`/media/experience-photos/${videoPath}`, {
+        headers: { Range: "bytes=0-99" },
+      })
+    ).status(),
+  ).toBe(404);
   await page.getByRole("link", { name: "Editar", exact: true }).click();
   await expect(page).toHaveURL(/dashboard\/experiences\?id=/);
   await page.getByLabel("Visibilidad", { exact: true }).selectOption("public");
@@ -165,6 +195,82 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
       )
     ).status(),
   ).toBe(200);
+  const videoResponse = await visitor.request.get(
+    `/media/experience-photos/${videoPath}`,
+    { headers: { Range: "bytes=0-99" } },
+  );
+  expect(videoResponse.status()).toBe(206);
+  expect(videoResponse.headers()["content-type"]).toContain("video/webm");
+  expect(videoResponse.headers()["content-range"]).toMatch(/^bytes 0-99\//);
+  expect((await videoResponse.body()).length).toBe(100);
+  await publicPage
+    .getByRole("button", {
+      name: "Siguiente archivo de La primera salida",
+      exact: true,
+    })
+    .click();
+  await expect(publicPage.locator(".gallery-count")).toHaveText("2 / 3");
+  await publicPage
+    .getByRole("button", {
+      name: "Abrir galería de La primera salida",
+      exact: true,
+    })
+    .click();
+  await expect(publicPage.getByRole("dialog")).toBeVisible();
+  await publicPage
+    .getByRole("button", { name: "Siguiente →", exact: true })
+    .click();
+  const playingVideo = publicPage.getByRole("dialog").locator("video");
+  await playingVideo.evaluate((video: HTMLVideoElement) => video.play());
+  await expect
+    .poll(() =>
+      playingVideo.evaluate((video: HTMLVideoElement) => video.readyState),
+    )
+    .toBeGreaterThanOrEqual(2);
+  await publicPage.keyboard.press("Escape");
+  await expect(publicPage.getByRole("dialog")).not.toBeVisible();
+  await publicPage
+    .getByRole("searchbox", { name: "Buscar aventuras" })
+    .fill("sin coincidencias");
+  await expect(
+    publicPage.getByRole("heading", { name: "La primera salida" }),
+  ).toHaveCount(0);
+  await publicPage
+    .getByRole("searchbox", { name: "Buscar aventuras" })
+    .fill("primera");
+  await expect(
+    publicPage.getByRole("heading", { name: "La primera salida" }),
+  ).toBeVisible();
+  await publicPage.screenshot({
+    path: "/tmp/somewhere-adventures-mobile.png",
+    fullPage: true,
+  });
+  // Removing one photo preserves the others; switching to private revokes access to all gallery files.
+  await page
+    .getByRole("button", { name: "Quitar archivo 2", exact: true })
+    .click();
+  await page.getByLabel("Visibilidad", { exact: true }).selectOption("private");
+  await page.getByRole("button", { name: "Guardar experiencia" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Experiencia actualizada",
+  );
+  expect(
+    (
+      await visitor.request.get(`/media/experience-photos/${videoPath}`)
+    ).status(),
+  ).toBe(404);
+  expect(
+    (
+      await admin.storage
+        .from("experience-photos")
+        .info(experience!.media[1].path)
+    ).error,
+  ).not.toBeNull();
+  await page.getByLabel("Visibilidad", { exact: true }).selectOption("public");
+  await page.getByRole("button", { name: "Guardar experiencia" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Experiencia actualizada",
+  );
   await publicPage.getByRole("link", { name: "Ver resumen" }).click();
   await expect(publicPage.locator(".summary-total strong")).toHaveText("1");
   await page.goto("/dashboard/tags");
@@ -180,6 +286,10 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
   await expect(page.getByRole("status")).toContainText("Tag reactivado");
   await publicPage.goto(`/t/${code}`);
   await expect(publicPage).toHaveURL(`/u/traveler_${suffix}`);
+  await publicPage.screenshot({
+    path: "/tmp/somewhere-profile-mobile.png",
+    fullPage: true,
+  });
   await page.goto("/dashboard/experiences");
   await page.getByText("Eliminar experiencia", { exact: true }).click();
   await page.getByRole("checkbox").check();
@@ -194,6 +304,7 @@ test("full Somewhere lifecycle: activation, profile, emergency, private experien
       )
     ).status(),
   ).toBe(404);
+  expect((await admin.storage.from("experience-photos").info(videoPath)).error).not.toBeNull();
   await publicPage.goto(`/u/traveler_${suffix}/summary`);
   await expect(publicPage.locator(".summary-total strong")).toHaveText("0");
   await visitor.close();

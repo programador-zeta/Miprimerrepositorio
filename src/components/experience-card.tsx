@@ -1,28 +1,18 @@
-import Image from "next/image";
-import { mediaUrl } from "@/lib/profile";
+import { AdventureGallery } from "@/components/adventure-gallery";
+import { experienceMedia } from "@/lib/experience-media";
 import {
   experienceTypes,
   formatDate,
   type Experience,
 } from "@/lib/experiences";
 export function ExperienceCard({ experience: e }: { experience: Experience }) {
-  const photo = mediaUrl("experience-photos", e.photo_url);
   return (
     <article className="experience-card">
-      <div className="experience-photo">
-        {photo ? (
-          <Image
-            src={photo}
-            alt={e.name}
-            fill
-            unoptimized
-            sizes="(max-width:700px) 90vw, 400px"
-          />
-        ) : (
-          <span className="empty-photo">SIN FOTOGRAFÍA</span>
-        )}
-        <span className="experience-type">{experienceTypes[e.type]}</span>
-      </div>
+      <AdventureGallery
+        items={experienceMedia(e)}
+        name={e.name}
+        type={experienceTypes[e.type]}
+      />
       <div className="experience-meta">
         <span>{e.place}</span>
         <time dateTime={e.experience_date}>

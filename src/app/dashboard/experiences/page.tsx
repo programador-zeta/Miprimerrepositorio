@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { ExperienceEditor } from "@/components/experience-editor";
 import { requireUser } from "@/lib/supabase/server";
 import { ActionForm } from "@/components/forms";
 import { ExperienceCard } from "@/components/experience-card";
-import { saveExperience, deleteExperience } from "@/lib/experience-actions";
-import { experienceTypes, type Experience } from "@/lib/experiences";
+import { deleteExperience } from "@/lib/experience-actions";
+import { type Experience } from "@/lib/experiences";
 export default async function EditExperiences({
   searchParams,
 }: {
@@ -13,7 +14,9 @@ export default async function EditExperiences({
     { id } = await searchParams;
   const { data, error } = await supabase
     .from("experiences")
-    .select("id,type,name,place,experience_date,photo_url,note,visibility")
+    .select(
+      "id,type,name,place,experience_date,photo_url,media,note,visibility",
+    )
     .eq("user_id", user.id)
     .order("experience_date", { ascending: false });
   if (error) throw new Error("No se pudieron cargar tus experiencias.");
@@ -35,89 +38,7 @@ export default async function EditExperiences({
         {id && !editing && (
           <p role="alert">No encontramos esa experiencia en tu cuenta.</p>
         )}
-        <ActionForm
-          action={saveExperience}
-          key={editing?.id || "new"}
-          label={editing ? "Guardar experiencia" : "Crear experiencia"}
-        >
-          <input type="hidden" name="id" value={editing?.id || ""} />
-          <div className="form-grid">
-            <label className="field">
-              Tipo
-              <select
-                aria-label="Tipo"
-                name="type"
-                defaultValue={editing?.type || "hike"}
-              >
-                {Object.entries(experienceTypes).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              Fecha
-              <input
-                name="experience_date"
-                type="date"
-                required
-                defaultValue={editing?.experience_date}
-              />
-            </label>
-          </div>
-          <label className="field">
-            Nombre de la experiencia
-            <input
-              name="name"
-              required
-              maxLength={120}
-              defaultValue={editing?.name}
-            />
-          </label>
-          <label className="field">
-            Lugar
-            <input
-              name="place"
-              required
-              maxLength={160}
-              defaultValue={editing?.place}
-            />
-          </label>
-          <label className="field">
-            Fotografía
-            <input
-              type="file"
-              name="photo"
-              required={!editing}
-              accept="image/jpeg,image/png,image/webp"
-            />
-            <span className="hint">
-              Máximo 5 MB.
-              {editing ? " Si no eliges otra, conservamos la actual." : ""}
-            </span>
-          </label>
-          <label className="field">
-            Nota (opcional)
-            <textarea
-              name="note"
-              rows={3}
-              maxLength={1500}
-              defaultValue={editing?.note || ""}
-            />
-          </label>
-          <label className="field">
-            Visibilidad
-            <select
-              aria-label="Visibilidad"
-              name="visibility"
-              defaultValue={editing?.visibility || "private"}
-            >
-              <option value="private">Privada — solo tú</option>
-              <option value="public">Pública — visible en tu perfil</option>
-            </select>
-          </label>
-        </ActionForm>
+        <ExperienceEditor key={editing?.id || "new"} experience={editing} />
         {editing && (
           <Link className="text-link" href="/dashboard/experiences">
             Cancelar edición / Crear otra experiencia
@@ -159,8 +80,8 @@ export default async function EditExperiences({
                       value="yes"
                       required
                     />{" "}
-                    Confirmo que quiero eliminar esta experiencia y su
-                    fotografía.
+                    Confirmo que quiero eliminar esta experiencia y sus fotos y
+                    videos.
                   </label>
                 </ActionForm>
               </details>

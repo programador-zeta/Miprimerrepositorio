@@ -62,19 +62,21 @@ Los códigos de activación se guardan como hashes bcrypt. La consulta pública 
 
 La aplicación utiliza la clave anon/publishable, nunca una clave service-role. La prueba de integración obtiene la clave administrativa del CLI local en memoria para preparar y limpiar sus fixtures; no se envía al frontend ni se guarda en el repositorio.
 
-## Experiencias y fotografías
+## Aventuras, fotos y videos
 
-Crear, editar o eliminar experiencias desde el panel. Incluyen tipo, nombre, lugar, fecha, fotografía y nota opcional. Son privadas por defecto. El perfil público y el resumen cuentan únicamente las públicas. El panel privado incluye todas las del propietario.
+Crear, editar o eliminar experiencias desde el panel. Incluyen tipo, nombre, lugar, fecha, galería de hasta 10 fotos o videos y nota opcional. Son privadas por defecto. El perfil público y el resumen cuentan únicamente las públicas. El panel privado incluye todas las del propietario.
 
-Las fotos de perfil son públicas. Las fotos de experiencias están en un bucket privado; las políticas permiten leerlas únicamente al propietario o cuando la experiencia asociada es pública. Cambiar la visibilidad también cambia el acceso al archivo. Las imágenes se sirven por rutas del mismo origen con comprobación de permisos, para que el navegador no necesite conectarse a un segundo puerto local. Los archivos admitidos son JPG, PNG y WebP de hasta 5 MB.
+Las fotos de perfil son públicas y se muestran redondas. Las fotos y los videos de experiencias están en un bucket privado; las políticas permiten leerlas únicamente al propietario o cuando la experiencia asociada es pública. Cambiar la visibilidad también cambia el acceso al archivo. Las imágenes se sirven por rutas del mismo origen con comprobación de permisos, para que el navegador no necesite conectarse a un segundo puerto local. Se admiten fotos JPG, PNG y WebP de hasta 5 MB y videos MP4, WebM y MOV de hasta 25 MB por archivo. La reproducción depende del códec compatible con el dispositivo; MP4 H.264 es la opción más compatible. La subida usa URLs firmadas de Supabase y no pasa los videos por las acciones de Next.js. Las rutas de medios transmiten el contenido y soportan solicitudes Range para adelantar videos, comprobando los permisos en cada solicitud.
 
 Los tags reclamados pueden deshabilitarse o reactivarse desde el panel, sin liberar su propietario ni permitir que alguien vuelva a reclamarlos.
 
 ## Estado verificado
 
-Las pruebas de integración comprueban RLS entre dos usuarios, ocultación de códigos, reclamación y estados de tags, y la protección de archivos ajenos. La prueba móvil recorre registro, activación, edición de perfil y foto, emergencia, creación privada, publicación de una experiencia, resumen y pausa/reactivación del tag.
+Las pruebas de integración comprueban RLS entre dos usuarios, ocultación de códigos, reclamación y estados de tags, y la protección de archivos ajenos. La prueba móvil recorre registro, activación, edición de perfil y foto, emergencia, creación privada, publicación de una galería con dos fotos y un video reproducible, navegación y ampliación, filtros de búsqueda, eliminación de una foto, revocación del acceso a videos privados, resumen y pausa/reactivación del tag.
 
 ## Publicación: GitHub + Render + Supabase
+
+La migración `202610300001_adventure_gallery.sql` conserva las fotos existentes y agrega galerías con comprobación del propietario, formatos y un máximo de 10 archivos. Debe aplicarse en Supabase antes de servir la nueva versión de la web; la integración con GitHub procesa las migraciones de `main`.
 
 El archivo `render.yaml` prepara un servicio web gratuito en Render. El código se conecta desde GitHub y Supabase sigue gestionando datos, usuarios y fotografías.
 

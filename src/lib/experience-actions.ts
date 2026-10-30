@@ -1,6 +1,11 @@
 "use server";
 import { requireUser } from "@/lib/supabase/server";
-import { uploadPhoto } from "@/lib/profile-actions";
+import {
+  experienceMedia,
+  validMedia,
+  validateMediaFile,
+  type ExperienceMedia,
+} from "@/lib/experience-media";
 import { experienceTypes, validDate } from "@/lib/experiences";
 import { revalidatePath } from "next/cache";
 import type { FormState } from "@/lib/auth-actions";
@@ -30,30 +35,45 @@ export async function saveExperience(
       error:
         "Revisa el nombre, lugar, tipo, fecha y visibilidad de la experiencia.",
     };
-  let previous: string | null = null;
+  let previous: ExperienceMedia[] = [];
   if (id) {
     if (!/^[a-f0-9-]{36}$/.test(id))
       return { error: "La experiencia no es válida." };
     const { data, error } = await supabase
       .from("experiences")
-      .select("photo_url")
+      .select("photo_url,media")
       .eq("id", id)
       .eq("user_id", user.id)
       .maybeSingle();
     if (error || !data)
       return { error: "No encontramos esa experiencia en tu cuenta." };
-    previous = data.photo_url;
+    previous = experienceMedia(data);
   }
-  let photo: string | undefined;
+  let media: unknown;
   try {
-    photo = await uploadPhoto(form, "experience-photos");
-  } catch (e) {
-    return {
-      error: e instanceof Error ? e.message : "No pudimos subir la foto.",
-    };
+    media = JSON.parse(String(form.get("media") || "[]"));
+  } catch {
+    return { error: "No pudimos leer las fotos y videos. Inténtalo de nuevo." };
   }
-  if (!id && !photo)
-    return { error: "Añade una fotografía para tu experiencia." };
+  if (!validMedia(media, user.id) || !media.length)
+    return { error: "Añade entre 1 y 10 fotos o videos a tu aventura." };
+  // Verify that each object exists and belongs to this user before publishing it.
+  for (const item of media) {
+    const { data, error } = await supabase.storage
+      .from("experience-photos")
+      .info(item.path);
+    if (
+      error ||
+      !data ||
+      !data.contentType ||
+      validateMediaFile(data.contentType, data.size || 0) ||
+      (item.kind === "video") !== data.contentType.startsWith("video/")
+    )
+      return {
+        error:
+          "Una foto o video no terminó de subir o no tiene un formato válido. Vuelve a intentarlo.",
+      };
+  }
   const values = {
     name,
     place,
@@ -61,7 +81,8 @@ export async function saveExperience(
     experience_date: date,
     note: note || null,
     visibility,
-    photo_url: photo || previous,
+    photo_url: media.find((item) => item.kind === "image")?.path || null,
+    media,
   };
   const result = id
     ? await supabase
@@ -77,11 +98,16 @@ export async function saveExperience(
         .select("id")
         .single();
   if (result.error || !result.data) {
-    if (photo) await supabase.storage.from("experience-photos").remove([photo]);
     return { error: "No pudimos guardar la experiencia." };
   }
-  if (photo && previous)
-    await supabase.storage.from("experience-photos").remove([previous]);
+  // Another adventure may reuse an owned file. Remove only unreferenced objects.
+  const removed = previous.filter(
+    (item) => !media.some((m) => m.path === item.path),
+  );
+  if (removed.length) {
+    const { discardPendingMedia } = await import("@/lib/media-actions");
+    await discardPendingMedia(removed);
+  }
   revalidatePath("/dashboard/experiences");
   revalidatePath("/dashboard");
   return {
@@ -103,11 +129,11 @@ export async function deleteExperience(
     .delete()
     .eq("id", id)
     .eq("user_id", user.id)
-    .select("photo_url")
+    .select("photo_url,media")
     .maybeSingle();
   if (error || !data) return { error: "No pudimos eliminar la experiencia." };
-  if (data.photo_url)
-    await supabase.storage.from("experience-photos").remove([data.photo_url]);
+  const { discardPendingMedia } = await import("@/lib/media-actions");
+  await discardPendingMedia(experienceMedia(data));
   revalidatePath("/dashboard/experiences");
   revalidatePath("/dashboard");
   return { success: "Experiencia eliminada." };

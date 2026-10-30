@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getPublicProfile } from "@/lib/profile";
 import { publicSupabase } from "@/lib/supabase/server";
-import { ExperienceCard } from "@/components/experience-card";
+import { AdventureCollection } from "@/components/adventure-collection";
 import type { Experience } from "@/lib/experiences";
 export const dynamic = "force-dynamic";
 export default async function PublicExperiences({
@@ -13,7 +13,9 @@ export default async function PublicExperiences({
     p = await getPublicProfile(username);
   const { data, error } = await publicSupabase()
     .from("experiences")
-    .select("id,type,name,place,experience_date,photo_url,note,visibility")
+    .select(
+      "id,type,name,place,experience_date,photo_url,media,note,visibility",
+    )
     .eq("user_id", p.user_id)
     .eq("visibility", "public")
     .order("experience_date", { ascending: false });
@@ -38,11 +40,7 @@ export default async function PublicExperiences({
         </Link>
       </div>
       {data.length ? (
-        <div className="experience-grid">
-          {(data as Experience[]).map((e) => (
-            <ExperienceCard key={e.id} experience={e} />
-          ))}
-        </div>
+        <AdventureCollection experiences={data as Experience[]} />
       ) : (
         <div className="empty-state">
           Las próximas historias están por llegar. Todavía no hay experiencias

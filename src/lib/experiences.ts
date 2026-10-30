@@ -1,3 +1,4 @@
+import type { ExperienceMedia } from "@/lib/experience-media";
 export const experienceTypes = {
   hike: "Hike",
   bike: "Bike ride",
@@ -14,6 +15,7 @@ export type Experience = {
   place: string;
   experience_date: string;
   photo_url: string | null;
+  media?: ExperienceMedia[];
   note: string | null;
   visibility: "public" | "private";
 };

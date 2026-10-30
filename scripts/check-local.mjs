@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-const fixture = JSON.parse(readFileSync(new URL("../tests/tag-fixture.json", import.meta.url), "utf8"));
+const fixture = JSON.parse(
+  readFileSync(new URL("../tests/tag-fixture.json", import.meta.url), "utf8"),
+);
 import { execFileSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 const cfg = JSON.parse(
@@ -64,15 +66,13 @@ try {
   );
   assert.equal(
     (
-      await admin
-        .from("tags")
-        .insert(
-          codes.map((public_code, i) => ({
-            public_code,
-            activation_code: fixture.activation_hash,
-            status: i ? "disabled" : "unclaimed",
-          })),
-        )
+      await admin.from("tags").insert(
+        codes.map((public_code, i) => ({
+          public_code,
+          activation_code: fixture.activation_hash,
+          status: i ? "disabled" : "unclaimed",
+        })),
+      )
     ).error,
     null,
   );
@@ -246,6 +246,51 @@ try {
     photo_url: owner.id + "/private-photo.jpg",
   };
   assert.ok((await other.client.from("experiences").insert(photoAttack)).error);
+  const ownerPath = owner.id + "/" + crypto.randomUUID() + ".webm";
+  assert.ok(
+    (
+      await other.client
+        .from("experiences")
+        .insert({
+          ...makeExperience("public"),
+          user_id: other.id,
+          media: [{ path: ownerPath, kind: "video" }],
+        })
+    ).error,
+  );
+  for (const media of [
+    null,
+    {},
+    [{ path: ownerPath, kind: "invalid" }],
+    Array(11).fill({ path: ownerPath, kind: "video" }),
+    [
+      { path: ownerPath, kind: "video" },
+      { path: ownerPath, kind: "video" },
+    ],
+    [{ path: owner.id + "/../private.webm", kind: "video" }],
+  ]) {
+    assert.ok(
+      (
+        await owner.client
+          .from("experiences")
+          .insert({ ...makeExperience("private"), media })
+      ).error,
+    );
+  }
+  assert.equal(
+    (
+      await owner.client
+        .from("experiences")
+        .insert({
+          ...makeExperience("private"),
+          media: [{ path: ownerPath, kind: "video" }],
+        })
+    ).error,
+    null,
+  );
+  console.log(
+    "PASS: gallery constraints block foreign media, traversal, duplicate files and oversized galleries",
+  );
   console.log(
     "PASS: tag administration, emergency RLS, private experiences, and foreign-photo protection",
   );
