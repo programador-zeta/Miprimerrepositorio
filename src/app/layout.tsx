@@ -20,10 +20,10 @@ export default function RootLayout({
             aria-label="Somewhere, inicio"
           >
             <Image
-              src="/brand/somewhere-logo.jpg"
+              src="/brand/somewhere-logo-clean.webp"
               alt="Somewhere"
-              width={1254}
-              height={1254}
+              width={2172}
+              height={724}
               sizes="(max-width:700px) 175px, 230px"
               preload
             />
